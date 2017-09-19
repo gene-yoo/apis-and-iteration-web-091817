@@ -7,12 +7,13 @@ def get_character_movies_from_api(character)
   all_characters = RestClient.get('http://www.swapi.co/api/people/')
   character_hash = JSON.parse(all_characters)
 
-  while (character_hash.fetch("next"))
+  while (!!all_characters)
     character_hash["results"].each do |character_data|
       if character_data.fetch("name").downcase == character
-        return character_data.fetch("films").collect {|film| JSON.parse(RestClient.get(film))}
+       return character_data.fetch("films").collect {|film| JSON.parse(RestClient.get(film))}
       end
     end
+    break if (character_hash.fetch("next") == nil)
     all_characters = RestClient.get(character_hash.fetch("next"))
     character_hash = JSON.parse(all_characters)
   end
@@ -22,12 +23,13 @@ end
 # def all_character_data
 #   all_characters = RestClient.get('http://www.swapi.co/api/people/')
 #   character_hash = JSON.parse(all_characters)
-#   character_data = character_hash.fetch("results")
+#   character_data = []
 #
-#   while (character_hash.fetch("next"))
+#   while (!!all_characters)
+#     character_data << character_hash.fetch("results")
+#     break if (character_hash.fetch("next") == nil)
 #     all_characters = RestClient.get(character_hash.fetch("next"))
 #     character_hash = JSON.parse(all_characters)
-#     character_data << character_hash.fetch("results")
 #   end
 #
 #   character_data.flatten
@@ -70,13 +72,14 @@ def most_expensive_vehicle_i_can_afford(limit)
   max_vehicle = ""
   max_cost = 0
 
-  while (vehicles_hash.fetch("next"))
+  while (!!all_vehicles)
     vehicles_hash["results"].each do |vehicle_data|
       if (vehicle_data.fetch("cost_in_credits").to_i > max_cost && vehicle_data.fetch("cost_in_credits").to_i <= limit)
         max_vehicle = vehicle_data.fetch("name")
         max_cost = vehicle_data.fetch("cost_in_credits").to_i
       end
     end
+    break if (vehicles_hash.fetch("next") == nil)
     all_vehicles = RestClient.get(vehicles_hash.fetch("next"))
     vehicles_hash = JSON.parse(all_vehicles)
   end
@@ -88,21 +91,28 @@ def most_expensive_vehicle_i_can_afford(limit)
   end
 end
 
+# gene = most_expensive_vehicle_i_can_afford(10000)
+# binding.pry
+
 # method to find all star wars vehicles and prices
 def all_star_wars_vehicles
   all_vehicles = RestClient.get('http://www.swapi.co/api/vehicles/')
   vehicles_hash = JSON.parse(all_vehicles)
   collection = []
 
-  while (vehicles_hash.fetch("next"))
+  while (!!all_vehicles)
     vehicles_hash["results"].each do |vehicle_data|
       collection << {vehicle_data.fetch("name") => vehicle_data.fetch("cost_in_credits")}
     end
+    break if (vehicles_hash.fetch("next") == nil)
     all_vehicles = RestClient.get(vehicles_hash.fetch("next"))
     vehicles_hash = JSON.parse(all_vehicles)
   end
   collection
 end
+
+# gene = all_star_wars_vehicles.count
+# binding.pry
 
 # sets the api of the type of thing you want to use. e.g. people, planets, films, species, vehicles, starships, must be the right text for the url
 def all_whatever
@@ -110,12 +120,13 @@ def all_whatever
   thing = gets.chomp
   all_objects = RestClient.get("http://www.swapi.co/api/#{thing}/")
   objects_hash = JSON.parse(all_objects)
-  objects_data = objects_hash.fetch("results") #array
+  objects_data = []
 
- while objects_hash.fetch("next")
+ while (!!all_objects)
+    objects_data << objects_hash.fetch("results")
+    break if (objects_hash.fetch("next") == nil)
     all_objects = RestClient.get(objects_hash.fetch("next"))
     objects_hash = JSON.parse(all_objects)
-    objects_data << objects_hash.fetch("results")
   end
   objects_data.flatten
 end
